@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guardião dos Oceanos: Edição Completa</title>
+<style>
+    :root {
+        --primary: #006994;
+        --secondary: #003366;
+        --accent: #48c9b0;
+        --danger: #e74c3c;
+        --warning: #f39c12;
+        --dark: #2c3e50;
+        --industry: #566573;
+        --card-bg: #ffffff;
+        --hover-bg: #f0f8ff;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #e0f7fa;
+        color: var(--dark);
+        margin: 0;
+        padding: 0;
+        line-height: 1.6;
+    }
+
+    /* --- Animações --- */
+    @keyframes flash-red { 0% { background-color: rgba(231, 76, 60, 0.4); } 100% { background-color: #e0f7fa; } }
+    .damage-flash { animation: flash-red 0.5s ease-out; }
+
+    @keyframes flash-green { 0% { background-color: rgba(46, 204, 113, 0.4); } 100% { background-color: #e0f7fa; } }
+    .money-flash { animation: flash-green 0.5s ease-out; }
+
+    /* --- Layout Principal --- */
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+    header { text-align: center; margin-bottom: 20px; color: var(--secondary); }
+
+    .dashboard {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .stat-card {
+        background: var(--card-bg);
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        text-align: center;
+        position: relative;
+    }
+
+    .stat-value { font-size: 1.4em; font-weight: bold; color: var(--primary); display: block; margin: 5px 0; }
+    .stat-label { font-size: 0.9em; color: #7f8c8d; }
+
+    .info-btn-mini {
+        background: #bdc3c7; color: white; border: none; border-radius: 50%;
+        width: 24px; height: 24px; font-size: 14px; cursor: pointer;
+        position: absolute; top: 5px; right: 5px; font-weight: bold;
+    }
+    .info-btn-mini:hover { background: var(--secondary); }
+
+    .booster-badge {
+        display: none; background: #f1c40f; color: #d35400; font-weight: bold;
+        padding: 5px 10px; border-radius: 15px; margin-top: 5px; font-size: 0.8em;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    /* --- Área de Jogo --- */
+    .game-area { display: grid; grid-template-columns: 1fr 300px; gap: 20px; }
+    @media (max-width: 900px) { .game-area { grid-template-columns: 1fr; } }
+
+    /* --- Investimentos --- */
+    .investments { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }
+
+    .category-card {
+        background: var(--card-bg); border-radius: 12px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.05); overflow: hidden;
+        border-top: 5px solid var(--primary); display: flex; flex-direction: column;
+    }
+
+    .category-card.industry-card { border-top: 5px solid var(--industry); background: #fdfefe; }
+    .industry-card .category-header { background: #ecf0f1; color: var(--industry); }
+    .industry-card .opt-cost { background: #d5dbdb; color: #2c3e50; }
+
+    .category-header {
+        padding: 12px 15px; background: #f8f9fa; border-bottom: 1px solid #eee;
+        font-weight: bold; color: var(--secondary); font-size: 1.1em;
+    }
+
+    .sub-options { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+    .option-row { display: flex; gap: 5px; align-items: stretch; }
+
+    .option-btn {
+        flex-grow: 1; background: white; border: 1px solid #ddd; padding: 8px 12px;
+        border-radius: 6px; text-align: left; cursor: pointer; transition: all 0.2s;
+        display: flex; justify-content: space-between; align-items: center;
+    }
+    .option-btn:hover { border-color: var(--primary); background: var(--hover-bg); }
+    .industry-card .option-btn:hover { border-color: var(--industry); background: #fadbd8; }
+    .option-btn:disabled { opacity: 0.6; cursor: not-allowed; background: #eee; border-color: #ddd; }
+
+    .opt-help-btn {
+        width: 40px; background: #ecf0f1; border: 1px solid #ddd; border-radius: 6px;
+        color: var(--secondary); font-weight: bold; cursor: pointer;
+        display: flex; align-items: center; justify-content: center; font-size: 1.2em;
+    }
+    .opt-help-btn:hover { background: #d5dbdb; }
+
+    .opt-info { display: flex; flex-direction: column; }
+    .opt-name { font-weight: bold; font-size: 0.9em; }
+    .opt-desc { font-size: 0.75em; color: #666; }
+    
+    .opt-cost {
+        font-weight: bold; color: var(--primary); background: #e0f7fa;
+        padding: 4px 8px; border-radius: 12px; font-size: 0.85em;
+        min-width: 35px; text-align: center; margin-left: 5px;
+    }
+    .gain-money { color: #27ae60 !important; background: #d5f5e3 !important; }
+
+    .locked { opacity: 0.7; pointer-events: none; position: relative; }
+    .locked::after {
+        content: "🔒 Requer Pesquisa Avançada"; position: absolute;
+        top: 50%; left: 50%; transform: translate(-50%, -50%);
+        background: rgba(44, 62, 80, 0.95); color: white; padding: 10px 20px;
+        border-radius: 20px; font-weight: bold; z-index: 10;
+        text-align: center; font-size: 0.8em; width: 80%;
+    }
+
+    /* --- Painel Lateral e Modais --- */
+    .side-panel { background: var(--card-bg); padding: 20px; border-radius: 12px; height: fit-content; }
+
+    #btn-next-year {
+        background: var(--accent); color: var(--dark); font-weight: bold; font-size: 1.1em;
+        padding: 15px; border: none; border-radius: 8px; cursor: pointer;
+        width: 100%; box-shadow: 0 4px 0 #36b39b; transition: transform 0.1s;
+    }
+    #btn-next-year:active { transform: translateY(4px); box-shadow: none; }
+
+    .log-area {
+        height: 450px; overflow-y: auto; font-size: 0.85em; border: 1px solid #eee;
+        padding: 10px; background: #f9f9f9; margin-top: 15px; border-radius: 8px;
+    }
+
+    .log-entry { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dotted #ccc; }
+    .log-year { font-weight: bold; color: var(--secondary); }
+    .log-bad { color: var(--danger); }
+    .log-good { color: #27ae60; }
+    .log-achievement { color: #d35400; font-weight: bold; background: #f9e79f; padding: 2px 5px; border-radius: 4px;}
+
+    .modal-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.7); display: none; justify-content: center;
+        align-items: center; z-index: 2000; backdrop-filter: blur(2px);
+    }
+    .modal-content {
+        background: white; padding: 25px; border-radius: 10px;
+        max-width: 600px; width: 90%; max-height: 85vh; overflow-y: auto;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    .modal-content h2 { color: var(--primary); margin-top: 0; }
+    .close-btn { float: right; cursor: pointer; border: none; background: transparent; font-weight: bold; font-size: 1.5em; line-height: 0.8;}
+    .input-field { width: 100%; padding: 10px; margin: 10px 0; border: 2px solid #ddd; border-radius: 5px; font-size: 1em; box-sizing: border-box; }
+
+    /* --- CERTIFICADO (CSS Otimizado) --- */
+    .certificate-container { display: none; }
+
+    /* Modo de Visualização (Tela) */
+    .certificate-container.visible {
+        display: flex; flex-direction: column;
+        position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+        background: rgba(0,0,0,0.95); z-index: 3000; overflow: hidden;
+    }
+
+    .cert-content-wrapper {
+        flex: 1; position: relative; width: 100%;
+        display: flex; justify-content: center; align-items: center;
+        overflow: hidden; padding: 20px; box-sizing: border-box;
+    }
+
+    .cert-img {
+        max-width: 100%; max-height: 100%; width: auto; height: auto;
+        object-fit: contain; box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
+
+    .cert-name-overlay {
+        position: absolute; top: 48%; left: 50%; transform: translate(-50%, -50%);
+        font-family: 'Brush Script MT', 'Lucida Handwriting', cursive;
+        font-size: 4vw; color: #555; white-space: nowrap;
+        pointer-events: none; text-align: center; width: 100%;
+    }
+
+    .cert-controls {
+        flex-shrink: 0; padding: 20px; background: #fff;
+        display: flex; justify-content: center; gap: 20px;
+        box-shadow: 0 -4px 10px rgba(0,0,0,0.1);
+    }
+
+    .btn-cert-action {
+        padding: 12px 30px; font-size: 1.1em; border: none; border-radius: 8px;
+        cursor: pointer; font-weight: bold; transition: transform 0.2s;
+    }
+    .btn-cert-print { background: var(--primary); color: white; }
+    .btn-cert-close { background: #eee; color: var(--danger); }
+    .btn-cert-action:hover { transform: scale(1.05); }
+
+    /* --- MODO DE IMPRESSÃO (Blindado) --- */
+    @media print {
+        @page { size: landscape; margin: 0 !important; }
+        
+        html, body {
+            width: 100%; height: 100%; margin: 0 !important; padding: 0 !important;
+            overflow: hidden !important;
+        }
+        
+        body * { visibility: hidden; display: none; }
+        
+        /* Exibe apenas o certificado */
+        .certificate-container, .certificate-container .cert-content-wrapper, 
+        .certificate-container .cert-img, .certificate-container .cert-name-overlay { 
+            visibility: visible !important; display: block !important; 
+        }
+
+        .certificate-container {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: white; z-index: 9999; margin: 0; padding: 0;
+        }
+
+        .cert-content-wrapper {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            margin: 0; padding: 0;
+        }
+
+        .cert-img {
+            width: 100%; height: 100%; object-fit: cover;
+            position: absolute; top: 0; left: 0;
+        }
+        
+        .cert-name-overlay {
+            position: absolute; top: 48%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 3.5em; width: 100%; text-align: center; z-index: 10000;
+        }
+
+        .cert-controls { display: none !important; }
+    }
+</style>
+</head>
+<body>
+
+<div id="certificado" class="certificate-container">
+    <div class="cert-content-wrapper">
+        <img src="https://drive.google.com/thumbnail?id=1XDuxhCbUTBZgueDGK75LzQRa1OzOKQVd&sz=w10000" class="cert-img" alt="Certificado Guardião dos Oceanos">
+        <div class="cert-name-overlay" id="cert-player-name">Nome do Jogador</div>
+    </div>
+    <div class="cert-controls">
+        <button class="btn-cert-action btn-cert-print" onclick="window.print()">🖨️ IMPRIMIR</button>
+        <button class="btn-cert-action btn-cert-close" onclick="fecharCertificado()">FECHAR</button>
+    </div>
+</div>
+
+<div id="intro-modal" class="modal-overlay" style="display: flex;">
+    <div class="modal-content">
+        <h2>Missão: Guardião dos Oceanos</h2>
+        <p>A humanidade está em um ponto crítico. O Oceano é o maior <strong>sumidouro de carbono</strong> do planeta, mas está saturado.</p>
+        <p><strong>Seu objetivo:</strong> Coordenar a preservação oceânica por 20 anos.</p>
+        <p>Identifique-se para o registro oficial:</p>
+        <input type="text" id="input-player-name" class="input-field" placeholder="Digite seu nome..." maxlength="30">
+        <p style="font-size: 0.9em; background: #f9f9f9; padding: 10px; border-left: 4px solid var(--accent);">
+            <strong>Dica:</strong> Explore o painel com cuidado. Algumas ações geram recursos imediatos, mas podem custar caro ao futuro.
+        </p>
+        <button id="btn-start" onclick="iniciarJogo()" style="background:var(--primary); color:white; padding:12px 24px; border:none; border-radius:5px; cursor:pointer; font-weight:bold; width: 100%; margin-top: 10px;">Assumir o Controle</button>
+    </div>
+</div>
+
+<div id="info-modal" class="modal-overlay">
+    <div class="modal-content">
+        <button class="close-btn" onclick="fecharInfo()">&times;</button>
+        <h2 id="info-title">Título</h2>
+        <p id="info-text" style="font-size: 1.05em; line-height: 1.7;">Texto explicativo.</p>
+    </div>
+</div>
+
+<div id="gameover-modal" class="modal-overlay">
+    <div class="modal-content">
+        <h2 id="go-title">Fim de Jogo</h2>
+        <p id="go-msg"></p>
+        <div id="real-life-tips" style="background: #e8f6f3; padding: 15px; border-radius: 8px; margin: 15px 0; font-size: 0.9em;">
+            <strong>Como ajudar o oceano na vida real?</strong>
+            <ul style="margin-top: 5px; padding-left: 20px;">
+                <li>Reduza o uso de plásticos descartáveis.</li>
+                <li>Escolha produtos do mar sustentáveis.</li>
+                <li>Pressione por políticas de carbono zero.</li>
+            </ul>
+        </div>
+        <div style="display: flex; gap: 10px; justify-content: center;">
+            <button id="btn-cert" onclick="verCertificado()" style="display:none; background:var(--secondary); color:white; padding:12px; border:none; border-radius:5px; cursor:pointer;">🏆 Ver Certificado</button>
+            <button onclick="location.reload()" style="background:var(--primary); color:white; padding:12px; border:none; border-radius:5px; cursor:pointer;">Jogar Novamente</button>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <header>
+        <h1>Guardião dos Oceanos</h1>
+        <p>Comandante: <span id="display-name" style="font-weight:bold;">Visitante</span> | Ano <span id="display-year" style="font-weight:bold; font-size:1.2em">1</span> de 20</p>
+        <div id="booster-display" class="booster-badge">⭐ BOOSTER ATIVO: Efeitos em dobro!</div>
+    </header>
+
+    <div class="dashboard">
+        <div class="stat-card">
+            <button class="info-btn-mini" onclick="mostrarInfo('Dinheiro', 'Recursos disponíveis. DICA: Indústrias dão dinheiro rápido, mas geram poluição.')">?</button>
+            <span class="stat-label">Dinheiro ($)</span>
+            <span class="stat-value" id="val-money">100</span>
+        </div>
+        <div class="stat-card">
+            <button class="info-btn-mini" onclick="mostrarInfo('Conscientização (%)', 'Quanto maior a %, mais dinheiro o governo recebe e menos lixo é gerado.')">?</button>
+            <span class="stat-label">Conscientização</span>
+            <span class="stat-value" id="val-aware">20%</span>
+        </div>
+        <div class="stat-card">
+            <button class="info-btn-mini" onclick="mostrarInfo('Lixo (Milhões tons)', 'Sufocam a vida marinha. Reduz drasticamente o OHI.')">?</button>
+            <span class="stat-label">Lixo</span>
+            <span class="stat-value" id="val-trash" style="color:var(--danger)">80</span>
+        </div>
+        <div class="stat-card">
+            <button class="info-btn-mini" onclick="mostrarInfo('CO2 (ppm)', 'Use energias renováveis e transporte verde para baixar.')">?</button>
+            <span class="stat-label">CO2</span>
+            <span class="stat-value" id="val-co2" style="color:var(--danger)">420</span>
+        </div>
+        <div class="stat-card">
+            <button class="info-btn-mini" onclick="mostrarInfo('Temperatura Global', 'Se passar de +2.0°C, você perde o jogo.')">?</button>
+            <span class="stat-label">Temperatura</span>
+            <span class="stat-value" id="val-temp">1.50°C</span>
+        </div>
+        <div class="stat-card">
+            <button class="info-btn-mini" onclick="mostrarInfo('OHI (Saúde Oceânica)', 'Ocean Health Index. Abaixo de 50 é derrota.')">?</button>
+            <span class="stat-label">OHI</span>
+            <span class="stat-value" id="val-ohi">60</span>
+        </div>
+    </div>
+
+    <div class="game-area">
+        <div>
+            <h3 style="margin-top:0;">Painel de Decisões Estratégicas</h3>
+            <div class="investments">
+                <div class="category-card industry-card">
+                    <div class="category-header"><span>Setor Industrial</span></div>
+                    <div class="sub-options">
+                        <div class="option-row">
+                            <button class="option-btn" onclick="investir('ind_oil')">
+                                <div class="opt-info"><span class="opt-name">Licença de Petróleo</span><span class="opt-desc">Dinheiro rápido.</span></div>
+                                <span class="opt-cost gain-money">+$50</span>
+                            </button>
+                            <button class="opt-help-btn" onclick="mostrarInfo('Licença de Petróleo', 'Gera muito dinheiro, mas libera muito CO2.')">?</button>
+                        </div>
+                        <div class="option-row">
+                            <button class="option-btn" onclick="investir('ind_fish')">
+                                <div class="opt-info"><span class="opt-name">Pesca Industrial</span><span class="opt-desc">Dinheiro rápido.</span></div>
+                                <span class="opt-cost gain-money">+$35</span>
+                            </button>
+                            <button class="opt-help-btn" onclick="mostrarInfo('Pesca Industrial', 'Gera receita, mas reduz OHI.')">?</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="category-card">
+                    <div class="category-header"><span>Educação e Política</span></div>
+                    <div class="sub-options">
+                        <div class="option-row">
+                            <button class="option-btn" onclick="investir('edu_school')">
+                                <div class="opt-info"><span class="opt-name">Campanha Escolar</span><span class="opt-desc">+ Conscientização.</span></div>
+                                <span class="opt-cost">$15</span>
+                            </button>
+                            <button class="opt-help-btn" onclick="mostrarInfo('Campanha Escolar', 'Aumenta a conscientização base.')">?</button>
+                        </div>
+                        <div class="option-row">
+                            <button class="option-btn" onclick="investir('edu_curr')">
+                                <div class="opt-info"><span class="opt-name">Currículo "Azul"</span><span class="opt-desc">++ Conscientização.</span></div>
+                                <span class="opt-cost">$25</span>
+                            </button>
+                            <button class="opt-help-btn" onclick="mostrarInfo('Currículo Azul', 'Grande aumento na conscientização.')">?</button>
+                        </div>
+                        <div class="option-row">
+                            <button class="option-btn" onclick="investir('edu_law')">
+                                <div class="opt-info"><span class="opt-name">Leis Ambientais</span><span class="opt-desc">Aumenta renda anual.</span></div>
+                                <span class="opt-cost">$35</span>
+                            </button>
+                            <button class="opt-help-btn" onclick="mostrarInfo('Leis Ambientais', 'Gera renda extra fixa por turno.')">?</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="category-card">
+                    <div class="category-header"><span>Pesquisa e Tecnologia</span></div>
+                    <div class="sub-options">
+                        <div class="option-row">
+                            <button class="option-btn" onclick="investir('res_basic')">
+                                <div class="opt-info"><span class="opt-name">Monitoramento</span><span class="opt-desc">Reduz levemente CO2.</span></div>
+                                <span class="opt-cost">$15</span>
+                            </button>
+                            <button class="opt-help-btn" onclick="mostrarInfo('Monitoramento', 'Satélites para otimizar rotas.')">?</button>
+                        </div>
+                        <div class="option-row">
+                            <button class="option-btn" onclick="investir('res_bio')">
+                                <div class="opt-info"><span class="opt-name">Biotecnologia</span><span class="opt-desc">Restaura OHI.</span></div>
+                                <span class="opt-cost">$30</span>
+                            </button>
+                            <button class="opt-help-btn" onclick="mostrarInfo('Biotecnologia', 'Cria corais resistentes.')">?</button>
+                        </div>
+                        <div class="option-row">
+                            <button class="option-btn" onclick="investir('res_adv')">
+                                <div class="opt-info"><span class="opt-name">P&D Avançado</span><span class="opt-desc">Chance de desbloqueio.</span></div>
+                                <span class="opt-cost">$45</span>
+                            </button>
+                            <button class="opt-help-btn" onclick="mostrarInfo('P&D Tecnologia', 'Chance de desbloquear novas categorias.')">?</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="category-card locked" id="cat-energy">
+                    <div class="category-header"><span>Energia Renovável</span></div>
+                    <div class="sub-options">
+                        <div class="option-row">
+                            <button class="option-btn" onclick="investir('ren_solar')">
+                                <div class="opt-info"><span class="opt-name">Parques Solares</span><span class="opt-desc">Reduz CO2.</span></div>
+                                <span class="opt-cost">$35</span>
+                            </button>
+                            <button class="opt-help-btn" onclick="mostrarInfo('Energia Solar', 'Substitui carvão.')">?</button>
+                        </div>
+                        <div class="option-row">
+                            <button class="option-btn" onclick="investir('ren_ship')">
+                                <div class="opt-info"><span class="opt-name">Transporte Verde</span><span class="opt-desc">Navios eficientes.</span></div>
+                                <span class="opt-cost">$40</span>
+                            </button>
+                            <button class="opt-help-btn" onclick="mostrarInfo('Transporte Verde', 'Reduz massivamente as emissões.')">?</button>
+                        </div>
+                        <div class="option-row">
+                            <button class="option-btn" onclick="investir('ren_wind')">
+                                <div class="opt-info"><span class="opt-name">Eólica Offshore</span><span class="opt-desc">Alta redução de CO2.</span></div>
+                                <span class="opt-cost">$50</span>
+                            </button>
+                            <button class="opt-help-btn" onclick="mostrarInfo('Eólica Offshore', 'Energia limpa constante.')">?</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="category-card locked" id="cat-protect">
+                    <div class="category-header"><span>Proteção Oceânica</span></div>
+                    <div class="sub-options">
+                        <div class="option-row">
+                            <button class="option-btn" onclick="investir('prot_clean')">
+                                <div class="opt-info"><span class="opt-name">Frotas de Limpeza</span><span class="opt-desc">Remove Plástico.</span></div>
+                                <span class="opt-cost">$30</span>
+                            </button>
+                            <button class="opt-help-btn" onclick="mostrarInfo('Limpeza', 'Remove plástico dos oceanos.')">?</button>
+                        </div>
+                        <div class="option-row">
+                            <button class="option-btn" onclick="investir('prot_sanc')">
+                                <div class="opt-info"><span class="opt-name">Santuários</span><span class="opt-desc">Alto ganho de OHI.</span></div>
+                                <span class="opt-cost">$40</span>
+                            </button>
+                            <button class="opt-help-btn" onclick="mostrarInfo('Santuários', 'Áreas de proteção total.')">?</button>
+                        </div>
+                        <div class="option-row">
+                            <button class="option-btn" onclick="investir('prot_mangrove')">
+                                <div class="opt-info"><span class="opt-name">Rest. Manguezais</span><span class="opt-desc">Carbono + OHI.</span></div>
+                                <span class="opt-cost">$40</span>
+                            </button>
+                            <button class="opt-help-btn" onclick="mostrarInfo('Manguezais', 'Sequestram 4x mais carbono.')">?</button>
+                        </div>
+                        <div class="option-row">
+                            <button class="option-btn" onclick="investir('prot_ban')">
+                                <div class="opt-info"><span class="opt-name">Proibir Plásticos</span><span class="opt-desc">Lei Global.</span></div>
+                                <span class="opt-cost">$50</span>
+                            </button>
+                            <button class="opt-help-btn" onclick="mostrarInfo('Banimento', 'Proíbe plásticos de uso único.')">?</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="side-panel">
+            <button id="btn-next-year" onclick="passarAno()">FINALIZAR ANO</button>
+            <div style="margin-top:15px; font-weight:bold; color:var(--secondary); border-bottom:1px solid #eee; padding-bottom:5px;">Registro de Eventos:</div>
+            <div class="log-area" id="game-log">
+                <div class="log-entry">Aguardando início da simulação...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- CONFIGURAÇÃO ---
+    const CONFIG = {
+        maxYears: 20,
+        winTemp: 2.0,
+        loseOHI: 50,
+        baseIncome: 30, 
+        investments: {
+            'ind_oil':    { cost: 0, name: "Licença Petróleo" },
+            'ind_fish':   { cost: 0, name: "Pesca Industrial" },
+            'edu_school': { cost: 15, name: "Campanha Escolar" },
+            'edu_curr':   { cost: 25, name: "Currículo Azul" },
+            'edu_law':    { cost: 35, name: "Leis Ambientais" },
+            'res_basic':  { cost: 15, name: "Monitoramento" },
+            'res_bio':    { cost: 30, name: "Biotecnologia" },
+            'res_adv':    { cost: 45, name: "P&D Avançado" },
+            'ren_solar':  { cost: 35, name: "Energia Solar" },
+            'ren_ship':   { cost: 40, name: "Transporte Verde" }, 
+            'ren_wind':   { cost: 50, name: "Eólica Offshore" },
+            'prot_clean': { cost: 30, name: "Limpeza" },
+            'prot_sanc':  { cost: 40, name: "Santuários" }, 
+            'prot_mangrove':{ cost: 40, name: "Rest. Manguezais" },
+            'prot_ban':   { cost: 50, name: "Banir Plásticos" }
+        }
+    };
+
+    // --- ESTADO ---
+    let state = {
+        playerName: "Visitante",
+        year: 1,
+        money: 100,
+        awareness: 20,
+        trash: 80,
+        co2: 420,
+        temp: 1.5,
+        ohi: 60,
+        techUnlocked: false,
+        incomeModifier: 0,
+        plasticBanActive: false,
+        gameOver: false,
+        totalInvestments: 0,
+        boosterNextYear: false,
+        efficiency: 1.0,
+        researchLuck: 0.0
+    };
+
+    function iniciarJogo() {
+        const inputName = document.getElementById('input-player-name').value;
+        if(inputName && inputName.trim() !== "") state.playerName = inputName;
+        
+        document.getElementById('display-name').innerText = state.playerName;
+        document.getElementById('cert-player-name').innerText = state.playerName;
+        
+        fecharIntro();
+        log("Início da simulação. O destino do oceano está em suas mãos.", "neutral");
+    }
+
+    function investir(id) {
+        if (state.gameOver) return;
+
+        const item = CONFIG.investments[id];
+        if (!id.startsWith('ind_') && state.money < item.cost) {
+            alert("Dinheiro insuficiente!");
+            return;
+        }
+
+        state.money -= item.cost;
+        state.totalInvestments++; 
+        
+        let msg = "", type = "good";
+        const eff = state.efficiency; 
+
+        switch(id) {
+            case 'ind_oil':
+                state.money += 50; state.co2 += 6;    
+                msg = "Licença vendida. +$50, mas +CO2."; type = "bad"; triggerMoneyFlash(); break;
+            case 'ind_fish':
+                state.money += 35; state.ohi -= 4;    
+                msg = "Pesca liberada. +$35, mas -OHI."; type = "bad"; triggerMoneyFlash(); break;
+            case 'edu_school':
+                state.awareness = Math.min(100, state.awareness + (5 * eff));
+                msg = "Conscientização +5%."; break;
+            case 'edu_curr':
+                state.awareness = Math.min(100, state.awareness + (12 * eff));
+                msg = "Conscientização +12%."; break;
+            case 'edu_law':
+                state.trash -= (1 * eff); state.incomeModifier += (5 * eff); 
+                msg = "Leis aprovadas. Renda fixa aumentou."; break;
+            case 'res_basic':
+                state.co2 -= (1 * eff); msg = "Otimização reduziu CO2."; break;
+            case 'res_bio':
+                state.ohi += (3 * eff); msg = "Corais restaurados."; break;
+            case 'res_adv':
+                const chance = 0.4 + state.researchLuck + (eff > 1 ? 0.2 : 0);
+                if (Math.random() < chance) { 
+                    state.techUnlocked = true; state.researchLuck = 0;
+                    msg = "SUCESSO! Tecnologias desbloqueadas!"; atualizarBloqueios();
+                } else {
+                    state.researchLuck += 0.15; msg = "Pesquisa falhou, mas dados coletados."; type = "neutral";
+                }
+                break;
+            case 'ren_solar':
+                state.co2 -= (6 * eff); msg = "Parques solares reduziram carvão."; break;
+            case 'ren_ship': 
+                state.co2 -= (9 * eff); state.trash -= (1 * eff);
+                msg = "Frota verde: emissões cortadas."; break;
+            case 'ren_wind':
+                state.co2 -= (12 * eff); state.trash -= (1 * eff);
+                msg = "Eólica Offshore reduziu muito CO2."; break;
+            case 'prot_clean':
+                state.trash -= (8 * eff); state.ohi += (1 * eff);
+                msg = "Limpeza de plástico realizada."; break;
+            case 'prot_sanc': 
+                state.ohi += (6 * eff); msg = "Santuários criados. Vida marinha floresce!"; break;
+            case 'prot_mangrove':
+                state.ohi += (4 * eff); state.co2 -= (4 * eff); 
+                msg = "Manguezais restaurados."; break;
+            case 'prot_ban':
+                state.plasticBanActive = true; state.trash -= (2 * eff); 
+                msg = "Lei Global: Plásticos proibidos!"; break;
+        }
+
+        let extraText = eff > 1 ? " (BOOSTER 2x!)" : "";
+        log(`Ação: ${item.name}${extraText}: ${msg}`, type);
+
+        if (state.totalInvestments === 10) {
+            alert("CONQUISTA: Investidor dos Oceanos!\nBônus de eficiência de 2x para o PRÓXIMO ano.");
+            state.boosterNextYear = true;
+            log("CONQUISTA: Investidor dos Oceanos! Bônus preparado.", "achievement");
+        }
+
+        calcularTemperatura();
+        atualizarUI();
+    }
+
+    function passarAno() {
+        if (state.gameOver) return;
+
+        // Resetar eficiência para o novo ano
+        if (state.boosterNextYear) {
+            state.efficiency = 2.0;
+            state.boosterNextYear = false;
+            document.getElementById('booster-display').style.display = 'block';
+            log("BOOSTER ATIVO: Eficácia dobrada este ano!", "good");
+        } else {
+            state.efficiency = 1.0;
+            document.getElementById('booster-display').style.display = 'none';
+        }
+
+        // Cálculos de degradação e bônus
+        const degCO2 = 3.5; 
+        let degLixo = Math.max(0, 4.0 - (state.awareness / 20) - (state.plasticBanActive ? 3.0 : 0));
+        
+        state.co2 += degCO2;
+        state.trash += degLixo;
+
+        let penTemp = Math.max(0, (state.temp - 1.5) * 8);
+        let penLixo = state.trash > 100 ? 1 : 0;
+        state.ohi -= (2.0 + penTemp + penLixo);
+
+        if (penTemp > 1 || state.ohi < 55) triggerDamageFlash();
+
+        eventoAleatorio();
+        calcularTemperatura();
+
+        // Renda
+        let income = CONFIG.baseIncome + state.incomeModifier + Math.floor(state.awareness * 0.5);
+        state.money += income;
+
+        state.year++;
+        verificarFim();
+
+        if (!state.gameOver) {
+            log(`--- Fim do Ano ${state.year-1}. Renda: +$${income} ---`, 'neutral');
+            atualizarUI();
+        }
+    }
+
+    function eventoAleatorio() {
+        if (Math.random() < 0.30) { 
+            const events = [
+                { msg: "Vazamento de Óleo!", ohi: -5, trash: 4 },
+                { msg: "Onda de calor marinha.", ohi: -4 },
+                { msg: "Ilha de lixo encontrada.", trash: 8, ohi: -2 },
+                { msg: "Doação bilionária!", money: 50, type: "good" }
+            ];
+            const ev = events[Math.floor(Math.random() * events.length)];
+            if(ev.ohi) state.ohi += ev.ohi;
+            if(ev.trash) state.trash += ev.trash;
+            if(ev.money) state.money += ev.money;
+            log(`EVENTO: ${ev.msg}`, ev.type || "bad");
+            if (!ev.type || ev.type === "bad") triggerDamageFlash();
+        }
+    }
+
+    function calcularTemperatura() {
+        state.temp = 1.5 + ((state.co2 - 420) * 0.007);
+    }
+
+    function atualizarUI() {
+        document.getElementById('display-year').innerText = state.year;
+        document.getElementById('val-money').innerText = Math.floor(state.money);
+        document.getElementById('val-aware').innerText = Math.floor(state.awareness) + "%";
+        document.getElementById('val-trash').innerText = state.trash.toFixed(1);
+        document.getElementById('val-co2').innerText = state.co2.toFixed(1);
+
+        const elTemp = document.getElementById('val-temp');
+        elTemp.innerText = "+" + state.temp.toFixed(2) + "°C";
+        elTemp.style.color = state.temp > 1.8 ? 'red' : 'var(--danger)';
+
+        const elOhi = document.getElementById('val-ohi');
+        elOhi.innerText = state.ohi.toFixed(1);
+        elOhi.style.color = state.ohi < 55 ? 'red' : 'green';
+
+        const btns = document.querySelectorAll('.option-btn');
+        btns.forEach(btn => {
+            const clickText = btn.getAttribute('onclick');
+            const id = clickText.match(/'([^']+)'/)[1];
+            const cost = CONFIG.investments[id].cost;
+            const parentLocked = btn.closest('.locked');
+            
+            if(id.startsWith('ind_')) { btn.disabled = false; return; }
+
+            let disabled = state.money < cost || parentLocked;
+            if (id === 'prot_ban' && state.plasticBanActive) {
+                disabled = true;
+                btn.querySelector('.opt-name').innerText = "Proibição (ATIVO)";
+            }
+
+            btn.disabled = disabled;
+            btn.style.opacity = disabled ? (parentLocked ? 1 : 0.6) : 1;
+        });
+    }
+
+    function atualizarBloqueios() {
+        if (state.techUnlocked) {
+            document.getElementById('cat-energy').classList.remove('locked');
+            document.getElementById('cat-protect').classList.remove('locked');
+        }
+    }
+
+    function log(text, type) {
+        const div = document.createElement('div');
+        div.className = 'log-entry ' + (type === 'good' ? 'log-good' : type === 'bad' ? 'log-bad' : type === 'achievement' ? 'log-achievement' : '');
+        div.innerHTML = `<span class="log-year">Ano ${state.year}:</span> ${text}`;
+        const area = document.getElementById('game-log');
+        area.prepend(div);
+    }
+
+    function verificarFim() {
+        if (state.temp >= CONFIG.winTemp) {
+            state.gameOver = true; abrirGameOver(false, "Colapso Climático (> 2.0°C).");
+        } else if (state.ohi <= CONFIG.loseOHI) {
+            state.gameOver = true; abrirGameOver(false, "Colapso do Ecossistema (OHI Baixo).");
+        } else if (state.year > CONFIG.maxYears) {
+            state.gameOver = true; abrirGameOver(true, "Parabéns! Você salvou o oceano!");
+        }
+    }
+
+    // --- UI Helpers ---
+    function triggerDamageFlash() { document.body.classList.add('damage-flash'); setTimeout(() => document.body.classList.remove('damage-flash'), 500); }
+    function triggerMoneyFlash() { document.body.classList.add('money-flash'); setTimeout(() => document.body.classList.remove('money-flash'), 500); }
+    
+    function fecharIntro() { document.getElementById('intro-modal').style.display = 'none'; }
+    function fecharInfo() { document.getElementById('info-modal').style.display = 'none'; }
+    function mostrarInfo(t, txt) {
+        document.getElementById('info-title').innerText = t;
+        document.getElementById('info-text').innerText = txt;
+        document.getElementById('info-modal').style.display = 'flex';
+    }
+
+    function abrirGameOver(vitoria, texto) {
+        const tit = document.getElementById('go-title');
+        tit.innerText = vitoria ? "MISSÃO CUMPRIDA!" : "FIM DE JOGO";
+        tit.style.color = vitoria ? "green" : "red";
+        document.getElementById('go-msg').innerHTML = texto;
+        document.getElementById('btn-cert').style.display = vitoria ? "block" : "none";
+        document.getElementById('gameover-modal').style.display = 'flex';
+    }
+
+    function verCertificado() { document.getElementById('certificado').classList.add('visible'); }
+    function fecharCertificado() { document.getElementById('certificado').classList.remove('visible'); }
+
+    atualizarUI();
+</script>
+</body>
+</html>
