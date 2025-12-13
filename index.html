@@ -253,7 +253,7 @@
 
 <div id="certificado" class="certificate-container">
     <div class="cert-content-wrapper">
-        <img src="https://drive.google.com/thumbnail?id=1XDuxhCbUTBZgueDGK75LzQRa1OzOKQVd&sz=w10000" class="cert-img" alt="Certificado Guardião dos Oceanos">
+        <img src="https://drive.google.com/thumbnail?id=1XDuxhCbUTBZgueDGK75LzQRa1OzOKQVd&sz=w10000" class="cert-img" alt="Certificado Guardião do Oceano">
         <div class="cert-name-overlay" id="cert-player-name">Nome do Jogador</div>
     </div>
     <div class="cert-controls">
@@ -264,7 +264,7 @@
 
 <div id="intro-modal" class="modal-overlay" style="display: flex;">
     <div class="modal-content">
-        <h2>Missão: Guardião dos Oceanos</h2>
+        <h2>Missão: Guardião do Oceano</h2>
         <p>A humanidade está em um ponto crítico. O Oceano é o maior <strong>sumidouro de carbono</strong> do planeta, mas está saturado.</p>
         <p><strong>Seu objetivo:</strong> Coordenar a preservação oceânica por 20 anos.</p>
         <p>Identifique-se para o registro oficial:</p>
@@ -305,7 +305,7 @@
 
 <div class="container">
     <header>
-        <h1>Guardião dos Oceanos</h1>
+        <h1>Guardião do Oceano</h1>
         <p>Comandante: <span id="display-name" style="font-weight:bold;">Visitante</span> | Ano <span id="display-year" style="font-weight:bold; font-size:1.2em">1</span> de 20</p>
         <div id="booster-display" class="booster-badge">⭐ BOOSTER ATIVO: Efeitos em dobro!</div>
     </header>
@@ -452,7 +452,7 @@
                                 <div class="opt-info"><span class="opt-name">Frotas de Limpeza</span><span class="opt-desc">Remove Plástico.</span></div>
                                 <span class="opt-cost">$30</span>
                             </button>
-                            <button class="opt-help-btn" onclick="mostrarInfo('Limpeza', 'Remove plástico dos oceanos.')">?</button>
+                            <button class="opt-help-btn" onclick="mostrarInfo('Limpeza', 'Remove plástico do Oceano.')">?</button>
                         </div>
                         <div class="option-row">
                             <button class="option-btn" onclick="investir('prot_sanc')">
@@ -617,9 +617,9 @@
         log(`Ação: ${item.name}${extraText}: ${msg}`, type);
 
         if (state.totalInvestments === 10) {
-            alert("CONQUISTA: Investidor dos Oceanos!\nBônus de eficiência de 2x para o PRÓXIMO ano.");
+            alert("CONQUISTA: Investidor do Oceano!\nBônus de eficiência de 2x para o PRÓXIMO ano.");
             state.boosterNextYear = true;
-            log("CONQUISTA: Investidor dos Oceanos! Bônus preparado.", "achievement");
+            log("CONQUISTA: Investidor do Oceano! Bônus preparado.", "achievement");
         }
 
         calcularTemperatura();
